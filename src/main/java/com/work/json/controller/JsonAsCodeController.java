@@ -36,8 +36,10 @@ public class JsonAsCodeController {
     public void converter(@RequestParam(name = "file") MultipartFile file,
             @RequestParam(name = "packageName", defaultValue = "com.empresa.dto") String packageName,
             @RequestParam(name = "className", defaultValue = "Welcome") String className,
+            @RequestParam(name = "useLombok", defaultValue = "FALSE") Boolean useLombok,
             HttpServletResponse response) throws IOException {
         log.info("Type: {}", file.getContentType());
+        log.info("UseLombok: {}", useLombok);
         String out = "json-to-code.zip";
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + out + "\"");
@@ -47,6 +49,7 @@ public class JsonAsCodeController {
                 .input(file)
                 .output(response.getOutputStream())
                 .packageName(packageName)
+                .useLombok(useLombok)
                 .build();
 
         jsonService.converter(request);

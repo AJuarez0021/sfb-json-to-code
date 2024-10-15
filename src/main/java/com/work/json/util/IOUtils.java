@@ -1,4 +1,4 @@
-package com.work.json.service;
+package com.work.json.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

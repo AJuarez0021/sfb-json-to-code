@@ -18,4 +18,5 @@ public class InputDTO {
     private OutputStream output;
     private String packageName;
     private String className;
+    private Boolean useLombok;
 }

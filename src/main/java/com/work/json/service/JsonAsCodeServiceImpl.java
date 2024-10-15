@@ -1,5 +1,6 @@
 package com.work.json.service;
 
+import com.work.json.util.IOUtils;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -110,6 +111,15 @@ public class JsonAsCodeServiceImpl implements JsonAsCodeService {
             classBuilder.append("import com.fasterxml.jackson.annotation.JsonProperty;\n\n");
         }
 
+        if (request.getUseLombok()) {
+            classBuilder.append("import lombok.Getter;\n");
+            classBuilder.append("import lombok.NoArgsConstructor;\n");
+            classBuilder.append("import lombok.Setter;\n\n");
+            classBuilder.append("@Getter\n");
+            classBuilder.append("@Setter\n");
+            classBuilder.append("@NoArgsConstructor\n");
+        }
+
         classBuilder.append("public class ").append(className).append(" {\n\n");
 
         // Iterar sobre las propiedades del JSON y crear atributos
@@ -129,27 +139,29 @@ public class JsonAsCodeServiceImpl implements JsonAsCodeService {
         }
 
         // Generar getters y setters
-        fields = rootNode.fields();  // Reiniciar el iterador
-        while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> field = fields.next();
-            String fieldName = field.getKey();
-            JsonNode fieldValue = field.getValue();
-            String fieldType = getJavaTypeFromJsonNode(fieldName, fieldValue, classBuilder);
-            if (!validateVariableName(fieldName, false)) {
-                fieldName = fixVariableName(fieldName, false);
+        if (!request.getUseLombok()) {
+            fields = rootNode.fields();  // Reiniciar el iterador
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> field = fields.next();
+                String fieldName = field.getKey();
+                JsonNode fieldValue = field.getValue();
+                String fieldType = getJavaTypeFromJsonNode(fieldName, fieldValue, classBuilder);
+                if (!validateVariableName(fieldName, false)) {
+                    fieldName = fixVariableName(fieldName, false);
+                }
+
+                // Método getter
+                classBuilder.append("\n    public ").append(fieldType).append(" get")
+                        .append(capitalize(fieldName)).append("() {\n")
+                        .append("        return ").append(fieldName).append(";\n")
+                        .append("    }\n");
+
+                // Método setter
+                classBuilder.append("\n    public void set").append(capitalize(fieldName))
+                        .append("(").append(fieldType).append(" ").append(fieldName).append(") {\n")
+                        .append("        this.").append(fieldName).append(" = ").append(fieldName).append(";\n")
+                        .append("    }\n");
             }
-
-            // Método getter
-            classBuilder.append("\n    public ").append(fieldType).append(" get")
-                    .append(capitalize(fieldName)).append("() {\n")
-                    .append("        return ").append(fieldName).append(";\n")
-                    .append("    }\n");
-
-            // Método setter
-            classBuilder.append("\n    public void set").append(capitalize(fieldName))
-                    .append("(").append(fieldType).append(" ").append(fieldName).append(") {\n")
-                    .append("        this.").append(fieldName).append(" = ").append(fieldName).append(";\n")
-                    .append("    }\n");
         }
 
         // Cerrar la clase
